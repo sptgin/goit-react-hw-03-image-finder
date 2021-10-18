@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import { createPortal } from 'react-dom';
-const modalRoot = document.querySelector('#modal-root');
+const modal = document.querySelector('#modal');
 
 export default class Modal extends Component {
   componentDidMount() {
@@ -10,16 +10,19 @@ export default class Modal extends Component {
   componentWillUnmount() {
     window.removeEventListener('keydown', this.handleEscKey);
   }
-  handleOverlayclick = e => {
-    if (e.target === e.currentTarget) {
+
+  handleOverlayclick = event => {
+    if (event.target === event.currentTarget) {
       this.props.onModalClose();
     }
   };
-  handleEscKey = e => {
-    if (e.code === 'Escape') {
+
+  handleEscKey = event => {
+    if (event.code === 'Escape') {
       this.props.onModalClose();
     }
   };
+
   render() {
     const { largeImageURL } = this.props;
     return createPortal(
@@ -28,7 +31,7 @@ export default class Modal extends Component {
           <img src={largeImageURL} alt="" />
         </div>
       </div>,
-      modalRoot,
+      modal,
     );
   }
 }

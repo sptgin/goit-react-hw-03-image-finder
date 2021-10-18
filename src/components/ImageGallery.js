@@ -2,6 +2,8 @@ import { Component } from 'react';
 import imageSearchAPI from '../services/api';
 import ImageGalleryItem from './ImageGalleryItem';
 import Modal from './Modal';
+import SpinnerLoader from './Loader';
+import Button from './Button';
 import { Notification } from 'react-pnotify';
 
 const imagesearch = new imageSearchAPI();
@@ -9,7 +11,7 @@ const imagesearch = new imageSearchAPI();
 export default class ImageGallery extends Component {
   state = {
     searchResultArray: [],
-    serchHits: null,
+    searchElements: null,
     status: 'init',
     imageLargeURL: '',
     errorMessage: '',
@@ -20,21 +22,36 @@ export default class ImageGallery extends Component {
       this.setState({ status: 'pending' });
       imagesearch.resetPage();
       imagesearch.searchQuery = this.props.searchQuery;
-      imagesearch.search().then(searchResults => {
-        if (searchResults.hits.length > 0) {
+      imagesearch.search().then(searchResultArray => {
+        if (searchResultArray.hits.length > 0) {
           this.setState({
-            searchResults: searchResults.hits,
-            serchHits: searchResults.total,
+            searchResultArray: searchResultArray.hits,
+            searchElements: searchResultArray.total,
             status: 'success',
           });
         } else {
-          this.setState({ status: 'error', errorMessage: 'Nothing found!' });
+          this.setState({
+            status: 'error',
+            errorMessage: 'No images found ...',
+          });
         }
       });
     }
   }
 
-  handleClick = e => {
+  handleImageClick = image => {
+    this.setState({
+      imageLargeURL: image,
+      status: 'showmodal',
+    });
+  };
+  onModalClose = () => {
+    this.setState({
+      status: 'success',
+    });
+  };
+
+  handleMoreButtonClick = event => {
     imagesearch.page = 1;
     imagesearch
       .search()
@@ -46,13 +63,10 @@ export default class ImageGallery extends Component {
           ],
           status: 'success',
         }));
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth',
-        });
+        Button();
       })
-      .catch(er => {
-        this.setState({ status: 'error', errorMessage: er });
+      .catch(error => {
+        this.setState({ status: 'error', errorMessage: error });
       });
   };
 
@@ -60,37 +74,37 @@ export default class ImageGallery extends Component {
     const {
       status,
       searchResultArray,
-      serchHits,
+      searchElements,
       imageLargeURL,
       errorMessage,
     } = this.state;
 
-    console.log();
-
     if (status === 'init') {
-      return <h2 className="title"></h2>;
+      return <h1 className="title"></h1>;
     }
+
     if (status === 'pending') {
-      return <h2 className="title">Loading ...</h2>;
+      return <SpinnerLoader />;
     }
+
     if (status === 'success') {
       return (
         <>
           <ul className="ImageGallery">
-            {searchResultArray.map(el => (
+            {searchResultArray.map(element => (
               <ImageGalleryItem
-                key={el.id}
-                item={el}
+                key={element.id}
+                item={element}
                 handleImageClick={this.handleImageClick}
               />
             ))}
           </ul>
-          {serchHits > 15 && (
+          {searchElements > 12 && (
             <button
               className="Button"
               type="button"
               id="more"
-              onClick={this.handleClick}
+              onClick={this.handleMoreButtonClick}
             >
               load more
             </button>
@@ -104,6 +118,7 @@ export default class ImageGallery extends Component {
         <Modal largeImageURL={imageLargeURL} onModalClose={this.onModalClose} />
       );
     }
+
     if (status === 'error') {
       return <Notification type="Error" title="Error" text={errorMessage} />;
     }

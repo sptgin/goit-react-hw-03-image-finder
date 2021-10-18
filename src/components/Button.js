@@ -1,4 +1,7 @@
-window.scrollTo({
-  top: document.documentElement.scrollHeight,
-  behavior: 'smooth',
-});
+function Button() {
+  window.scrollTo({
+    top: document.documentElement.scrollHeight,
+    behavior: 'smooth',
+  });
+}
+export default Button;
